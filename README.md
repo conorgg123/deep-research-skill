@@ -1,6 +1,8 @@
 # Deep Research skill
 
-An agent skill that coordinates multi-source research and synthesizes it into a narrative report. It decomposes a question, spawns parallel research subagents, optionally runs one gap-filling round, then spawns a report writer.
+An opencode agent skill that coordinates multi-source research and synthesizes it into a narrative report. It decomposes a question, spawns parallel research subagents with opencode's `task` tool, optionally runs one gap-filling round, then spawns a report writer.
+
+Built and verified against opencode 1.18.3.
 
 ## Install into opencode
 
@@ -34,7 +36,28 @@ Windows PowerShell
 git clone https://github.com/conorgg123/deep-research-skill.git "$env:USERPROFILE\.claude\skills\deep-research"
 ```
 
-Restart opencode or start a new session so the skill is discovered. It then appears in the skill list as `deep-research` and loads on demand, either automatically when a research request matches it or manually by exact name.
+Restart opencode or start a new session so the skill is discovered. Verify it with
+
+```
+opencode debug skill
+```
+
+and look for `"name": "deep-research"` in the output. The `location` field should point at the clone.
+
+## Use in opencode
+
+There are three ways to start a run.
+
+- Automatic. Ask a research question and the agent can load the skill from its description.
+- Direct. Type `/deep-research <question>` and submit. opencode 1.18.3 registers skills as commands, so this resolves even though the slash autocomplete only lists `/skills`.
+- Browse. Type `/skills`, pick `deep-research`, and add your question.
+
+The skill writes `research_notes/<title>/` and `reports/<title>.md` under the current project directory. opencode has no file-send tool, so the final message gives you the absolute path to the report.
+
+## Requirements
+
+- opencode with the `task` tool and the built-in `general` subagent. Both ship with opencode.
+- A web search provider for discovery. `websearch` is available with the OpenCode or OpenCode Go provider, or with `OPENCODE_ENABLE_EXA=1`. Without it, researchers can fall back to `webfetch` and `bash`, but results will be narrower.
 
 ## Update
 
@@ -50,6 +73,5 @@ git -C <install path> pull
 
 ## Notes
 
-- The skill spawns parallel subagents, so the host must expose a Task or Agent tool.
-- It asks subagents for `subagent_type="general-purpose"`. If your host names that type differently, for example `general`, edit that value in `SKILL.md`.
-- Reports land in `reports/` and working notes in `research_notes/` under the host's project directory.
+- The skill spawns parallel subagents with opencode's `task` tool and `subagent_type="general"`. It does not use `general-purpose`, which is a Claude Code agent name, and it does not pass `run_in_background`.
+- To use the skill in Claude Code instead, replace `task` with `Agent`, `general` with `general-purpose`, `question` with `AskUserQuestion`, `websearch` with `WebSearch`, `webfetch` with `WebFetch`, `todowrite` with `TodoWrite`, and `write`/`read` with `Write`/`Read` in `SKILL.md` and the two reference files.

@@ -1,6 +1,6 @@
 ---
 name: deep-research
-description: Use this skill when the user's prompt requires (1) researching a topic across multiple sources, comparing options or alternatives, analyzing trends or history, understanding markets or industries, or reviewing literature or studies and (2) synthesizing that research into a comprehensive, narrative report. If you're planning to search the web or internal knowledge bases, consider using this skill. This skill coordinates research subagents, so use it only when you have a tool for spawning subagents (the Agent or Task tool); otherwise, research the question directly.
+description: Use this skill when the user's prompt requires (1) researching a topic across multiple sources, comparing options or alternatives, analyzing trends or history, understanding markets or industries, or reviewing literature or studies and (2) synthesizing that research into a comprehensive, narrative report. If you're planning to search the web or internal knowledge bases, consider using this skill. This skill coordinates research subagents, so use it only when you have opencode's task tool (the subagent-spawning tool); otherwise, research the question directly.
 ---
 
 # Coordinating Deep Research
@@ -9,7 +9,7 @@ description: Use this skill when the user's prompt requires (1) researching a to
 
 You are acting as the **coordinator**. Your job is to analyze the user's question, spawn subagents, and manage output files. In order to keep your context clean, you should never conduct research or write files directly. For the same reason, you also should not read the researcher.md or report-writer.md files.
 
-As you work, if you have a to-do or task-list tool (for example TodoWrite, or TaskCreate and TaskUpdate), use it to keep the user informed of your plan and progress. For clarity, don't reference subagents in those items. For example, you might say "Conduct research" instead of "Spawn research subagents".
+As you work, use opencode's todowrite tool to keep the user informed of your plan and progress. For clarity, don't reference subagents in those items. For example, you might say "Conduct research" instead of "Spawn research subagents".
 
 ## Process
 
@@ -30,7 +30,7 @@ Read the user's question and consider if there are any missing or ambiguous deta
 
 In order to avoid creating unnecessary friction with the user, follow ups should only be asked when they would meaningfully impact how research is conducted.
 
-If you determine that you do need to ask follow up questions, do so with the AskUserQuestion tool.
+If you determine that you do need to ask follow up questions, do so with opencode's question tool.
 
 ### 2. Choose a title for this research and create its directories
 
@@ -63,12 +63,11 @@ In the next step, you should spawn one subagent for each subtopic and independen
 
 For each subtopic and independent point of view determined above, spawn a foreground research subagent.
 
-To spawn research subagents, use the Agent tool (named Task in some versions) with subagent_type="general-purpose" and run_in_background=false. Ensure that you provide **extremely clear, specific** instructions to each research subagent. Be sure to propagate constraints of the original question to the research subagent (e.g., temporal, geographical). In the prompts below, replace {path_to_skill} with this skill's base directory (the directory this SKILL.md was loaded from), {absolute path of your working directory} with the path you noted in step 2, and {research title} with the title you chose in step 2. Follow the exact format provided below:
+To spawn research subagents, use opencode's task tool with subagent_type="general". The task tool runs in the foreground and needs no background flag. Ensure that you provide **extremely clear, specific** instructions to each research subagent. Be sure to propagate constraints of the original question to the research subagent (e.g., temporal, geographical). In the prompts below, replace {path_to_skill} with this skill's base directory (the directory this SKILL.md was loaded from, stated in the loaded skill content), {absolute path of your working directory} with the path you noted in step 2, and {research title} with the title you chose in step 2. Follow the exact format provided below:
 
 ```
-Agent(
-  run_in_background=false
-  subagent_type="general-purpose",
+task(
+  subagent_type="general",
   description="{3-5 words}",
   prompt="Research {specific narrow topic}.
 
@@ -114,7 +113,7 @@ Example of a good, clear, detailed prompt for a research subagent:
 >
 > **As a first step, you must read {path_to_skill}/references/researcher.md for instructions on how to conduct research.**"
 
-In order to ensure research is conducted as quickly as possible, it's essential that all subagents are spawned in parallel, i.e., that you make all your calls to the Agent tool in a single turn.
+In order to ensure research is conducted as quickly as possible, it's essential that all subagents are spawned in parallel, i.e., that you make all your calls to the task tool in a single turn.
 
 ### 5. [If absolutely necessary] Conduct one additional round of research
 
@@ -124,12 +123,11 @@ Based on the task summaries returned by the research subagents, determine if the
 
 ### 6. Spawn foreground report writer subagent
 
-After research is done, spawn a single report writer subagent. Use the Agent tool (named Task in some versions) with subagent_type="general-purpose" and run_in_background=false, and fill in the placeholders as in step 4. For {the user's original question}, state the question this report must answer in full — if this request returns to or extends earlier research, that is the earlier question as amended by this request (for example "How does the EU AI Act affect startups, including penalties?"), not just the follow-up message. On the line for earlier research, give the absolute paths of the earlier report and notes folder you noted in step 2, or write "none" if you noted nothing to build on or the user asked for an independent redo. Follow the exact format provided below:
+After research is done, spawn a single report writer subagent. Use opencode's task tool with subagent_type="general", and fill in the placeholders as in step 4. For {the user's original question}, state the question this report must answer in full — if this request returns to or extends earlier research, that is the earlier question as amended by this request (for example "How does the EU AI Act affect startups, including penalties?"), not just the follow-up message. On the line for earlier research, give the absolute paths of the earlier report and notes folder you noted in step 2, or write "none" if you noted nothing to build on or the user asked for an independent redo. Follow the exact format provided below:
 
 ```
-Agent(
-  run_in_background=false
-  subagent_type="general-purpose",
+task(
+  subagent_type="general",
   description="Write final report",
   prompt="Read the notes in {absolute path of your working directory}/research_notes/{research title}/ and synthesize into a research report that answers: {the user's original question}.
 
@@ -143,4 +141,4 @@ Save your final report to this exact path: {absolute path of your working direct
 
 ### 7. Deliver report to user
 
-After the report writer is done, make the report available to the user: if you have a tool for sending files to the user (for example SendUserFile), send reports/{research title}.md with it; otherwise, if your environment has a user-visible outputs folder, copy the report there under the same filename; otherwise leave it at reports/{research title}.md. Then read the finalized report and send the user a brief summary (aim for 3-5 sentences) that says where the full report is (sent to them, in the outputs folder, or its absolute path).
+After the report writer is done, leave the report at reports/{research title}.md and give the user its absolute path. opencode has no file-send tool, so there is nowhere else to move it. Then read the finalized report and send the user a brief summary (aim for 3-5 sentences) that answers the question and says where the full report is.
