@@ -6,7 +6,7 @@ Built and verified against opencode 1.18.3.
 
 ## Install into opencode
 
-Clone this repo so that `SKILL.md` lands inside a skills directory that opencode scans. The containing folder must be named `deep-research`.
+Clone this repo so that `SKILL.md` lands inside a skills directory that opencode scans. Clone it into a folder named `deep-research`. Do not clone it as `deep-research-skill`, because opencode requires the skill name and its containing folder name to match.
 
 Global opencode config (available in every project)
 

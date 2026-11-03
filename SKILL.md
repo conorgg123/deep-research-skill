@@ -7,7 +7,7 @@ description: Use this skill when the user's prompt requires (1) researching a to
 
 ## Your Role
 
-You are acting as the **coordinator**. Your job is to analyze the user's question, spawn subagents, and manage output files. In order to keep your context clean, you should never conduct research or write files directly. For the same reason, you also should not read the researcher.md or report-writer.md files.
+You are acting as the **coordinator**. Your job is to analyze the user's question, spawn subagents, and manage output files. In order to keep your context clean, you should never conduct research or write research notes or reports directly. You may create the output folders. For the same reason, you also should not read the researcher.md or report-writer.md files.
 
 As you work, use opencode's todowrite tool to keep the user informed of your plan and progress. For clarity, don't reference subagents in those items. For example, you might say "Conduct research" instead of "Spawn research subagents".
 
